@@ -133,10 +133,7 @@ function renderDownload(data) {
   const newButton = createBtn({
     classList: ['main-btn'],
     label: `Download ${candidates.length} applicants`,
-    onClick: () => {
-      const csvData = convertJSONToCSV(candidates);
-      downloadCSV(csvData, title);
-    },
+    onClick: () => downloadData(JSON.stringify(candidates, null, '\t'), `${title}.json`),
   });
 
   renderMainBlock({
@@ -217,51 +214,15 @@ function showOpenLnBtn() {
   btn.classList.remove('hidden');
 }
 
-// csv --------------------
-function downloadCSV(csv, filename) {
-  var csvFile = new Blob([csv], { type: 'text/csv' });
+// file --------------------
+function downloadData(data, filename) {
+  var fileBlob = new Blob([data], { type: 'text/json' });
   var downloadLink = document.createElement('a');
   downloadLink.download = filename;
-  downloadLink.href = window.URL.createObjectURL(csvFile);
+  downloadLink.href = window.URL.createObjectURL(fileBlob);
   downloadLink.style.display = 'none';
   document.body.appendChild(downloadLink);
   downloadLink.click();
-}
-
-function convertJSONToCSV(jsonData) {
-  const headers = createColumnHeaders(jsonData);
-
-  const csvContent = [
-    headers.join(','),
-    ...jsonData.map((row) => headers.map((header) => JSON.stringify(row[header], replacer)).join(',')),
-  ].join('\n');
-
-  return csvContent;
-}
-
-function createColumnHeaders(data) {
-  const allHeadersSet = new Set();
-  data.forEach((item) => {
-    Object.keys(item).forEach((key) => allHeadersSet.add(key));
-  });
-  const array = Array.from(allHeadersSet);
-  const mainHeaders = [];
-  const expHeaders = [];
-  const edHeaders = [];
-  array.forEach((header) => {
-    if (header.startsWith('expirience')) {
-      expHeaders.push(header);
-    } else if (header.startsWith('education')) {
-      edHeaders.push(header);
-    } else {
-      mainHeaders.push(header);
-    }
-  });
-
-  expHeaders.sort((a, b) => a - b);
-  edHeaders.sort((a, b) => a - b);
-
-  return mainHeaders.concat(edHeaders.concat(expHeaders));
 }
 
 function replacer(key, value) {

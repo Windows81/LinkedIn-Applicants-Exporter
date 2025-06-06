@@ -222,32 +222,34 @@ async function parseCandidates(timestamp) {
     }
   }
 
-  return prepareCandidates(candidates);
+  return candidates;
 }
 
 function parseCandidateData(array) {
-  const candidate = { expirience: [], education: [] };
-  array.forEach((item) => {
-    if (item.lastName) {
-      candidate.name = item.firstName + ' ' + item.lastName;
-      candidate.headline = item.headline;
+  const candidate = {};
+  var screeningQuestions = [];
+  var screeningAnswers = [];
+  var experience = [];
+  var education = [];
+  for (var item of array) {
+    if (item.lastName) candidate.name = `${item.firstName} ${item.lastName}`;
+    if (item.headline) candidate.headline = item.headline;
+    if (item.contactEmail) candidate.email = item.contactEmail;
+    if (item.contactPhoneNumber) candidate.phoneNumber = item.contactPhoneNumber.number;
+    if (item.defaultLocalizedName && item.defaultLocalizedNameWithoutCountryName) candidate.loc = item.defaultLocalizedName;
+    if (item.createdAt) candidate.createdAt = new Date(item.createdAt);
+    if (item.downloadUrl) candidate.cvTempDownload = item.downloadUrl;
+
+    if (item.localizedQuestionDisplayText) {
+      screeningQuestions.push(item.localizedQuestionDisplayText);
     }
-    if (item.contactEmail) {
-      candidate.email = item.contactEmail;
-    }
-    if (item.contactPhoneNumber) {
-      candidate.phoneNumber = item.contactPhoneNumber.number;
-    }
-    if (item.defaultLocalizedName && item.defaultLocalizedNameWithoutCountryName) {
-      candidate.loc = item.defaultLocalizedName;
-    }
-    if (item.createdAt) {
-      candidate.createdAt = new Date(item.createdAt);
+    if (item.responses) {
+      screeningAnswers = item.responses.map((e) => e.questionAnswers);
     }
 
     if (item.profileTreasuryMediaPosition) {
-      const start = item.dateRange?.start?.month + ' ' + item.dateRange?.start?.year;
-      const end = item.dateRange?.end ? item.dateRange?.end.month + ' ' + item.dateRange?.end.year : 'present';
+      const start = `${item.dateRange?.start?.month} ${item.dateRange?.start?.year}`;
+      const end = item.dateRange?.end ? `${item.dateRange?.end.month} ${item.dateRange?.end.year}` : 'present';
 
       const name = item.companyName;
       const position = item.title;
@@ -256,80 +258,31 @@ function parseCandidateData(array) {
       const year = item.dateRange?.start?.year;
       const month = item.dateRange?.start?.month;
 
-      candidate.expirience.push({
-        start,
-        end,
-        name,
-        position,
-        geo,
-        year,
-        month,
-      });
+      experience.push({ start, end, name, position, geo, year, month });
     }
-    if (item.profileTreasuryMediaEducation) {
-      const start = item.dateRange?.start?.year || 1900;
-      const end = item.dateRange?.end?.year || 'present';
 
-      const scool = item.schoolName;
+    if (item.profileTreasuryMediaEducation) {
+      const start = item.dateRange?.start?.year ?? 1900;
+      const end = item.dateRange?.end?.year ?? 'present';
+
+      const school = item.schoolName;
       const field = item.fieldOfStudy;
       const degree = item.degreeName;
 
-      candidate.education.push({ start, end, scool, field, degree });
+      education.push({ start, end, school, field, degree });
     }
+  }
+
+  candidate.screening = screeningQuestions.map((_, i) => {
+    return {
+      question: screeningQuestions[i],
+      answer: screeningAnswers[i],
+    };
   });
+  candidate.experience = experience;
+  candidate.education = education;
 
   return candidate;
-}
-
-function prepareCandidates(candidates) {
-  const prepared = candidates.map((item) => {
-    const newItem = { ...item };
-
-    const education = item.education
-      .sort((a, b) => b.start - a.start)
-      .map((ed) => {
-        const array = [];
-        if (ed.start) array.push(ed.start + ' - ' + ed.end);
-        if (ed.scool) array.push(ed.scool);
-        if (ed.field) array.push(ed.field);
-        if (ed.degree) array.push(ed.degree);
-
-        return array.join(', ');
-      });
-
-    education.forEach((item, index) => {
-      newItem[`education_${index + 1}`] = item;
-    });
-
-    delete newItem.education;
-
-    const expirience = item.expirience
-      .sort((a, b) => {
-        if (a.year !== b.year) {
-          return b.year - a.year;
-        } else {
-          return b.month - a.month;
-        }
-      })
-      .map((exp) => {
-        const array = [];
-        if (exp.start) array.push(exp.start + ' - ' + exp.end);
-        if (exp.name) array.push(exp.name);
-        if (exp.position) array.push(exp.position);
-        if (exp.geo) array.push(exp.geo);
-        return array.join(', ');
-      });
-
-    expirience.forEach((item, index) => {
-      newItem[`expirience_${index + 1}`] = item;
-    });
-
-    delete newItem.expirience;
-
-    return cleanObjectValues(newItem);
-  });
-
-  return prepared;
 }
 
 // utils --------------------------------
@@ -426,10 +379,6 @@ function getCookie(name) {
 
 async function fetchJobApplication(applicationId, link) {
   const csrfToken = getCookie('JSESSIONID').replace(/"/g, '');
-  //try {
-  //  const queryId = await getQueryId(link);
-  //} catch (error) {}
-
   const queryId = 'b6f283040a32b7f2acab4ad18e0d971d';
 
   const response = await fetch(

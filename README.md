@@ -4,11 +4,7 @@
 
 https://introview.com/00gri00/linkedin-applicants-exporter-video-instruction#content (not mine)
 
-Exports CSV data in the following format:
-
-```csv
-applicationId,loc,email,phoneNumber,createdAt,name,headline,education_1,education_2,education_3,education_4,expirience_1,expirience_2,expirience_3
-```
+Unlike with the original, my modified version exports candidate data as JSON.
 
 Originated from Introview's [LinkedIn Applications Exporter 0.0.25](https://www.crxsoso.com/webstore/detail/nenpfcppjapnadplgpeldoafnfccbjoh).
 
