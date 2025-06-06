@@ -19,5 +19,5 @@ jobs:
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "*.crx" 
+          artifacts: "**/*.crx" 
           token: ${{ github.token }}
