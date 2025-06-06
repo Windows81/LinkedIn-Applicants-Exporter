@@ -83,7 +83,7 @@ async function parseJobDataInCandidatesPage() {
   );
 
   const jobTitleBlock = await waitForDomSimple(() =>
-    getElementByXPath('div[1]/div[1]/div[2]/div[1]/h1', container)
+    getElementByXPath('div[1]/div[1]/div[2]/div[1]/*', container)
   );
 
   let jobTitle = '';

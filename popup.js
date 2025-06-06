@@ -1,4 +1,3 @@
-let isAuthorized = false;
 let title = '';
 
 const container = document.getElementsByClassName('container')[0];
@@ -12,15 +11,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function (tabs) {
       var activeTab = tabs[0];
 
-      const _isAuth = await getAuthRetry();
-
       if (
-        _isAuth &&
         !/linkedin\.com\/hiring\/jobs\/.*\/applicants/.test(activeTab.url)
       ) {
         const infoElement = document.getElementById('go-ln');
         infoElement.classList.remove('hidden');
-        hideAuthBlock();
         showOpenLnBtn();
       } else {
         const infoElement = document.getElementById('go-ln');
@@ -28,7 +23,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       if (
-        _isAuth &&
         /linkedin\.com/.test(activeTab.url) &&
         !/linkedin\.com\/hiring\/jobs\/.*\/applicants/.test(activeTab.url)
       ) {
@@ -36,7 +30,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       if (
-        _isAuth &&
         /linkedin\.com\/hiring\/jobs\/.*\/applicants/.test(activeTab.url)
       ) {
         const lnJob = await withRetry(
@@ -55,15 +48,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
   );
-
-  const _isAuth = await getAuthRetry();
-
-  isAuthorized = _isAuth;
-  if (!_isAuth) {
-    renderLoginBlock();
-  } else {
-    hideAuthBlock();
-  }
 });
 
 chrome.runtime.onMessage.addListener((obj, sender, response) => {
@@ -75,38 +59,7 @@ chrome.runtime.onMessage.addListener((obj, sender, response) => {
   }
 });
 
-// ----- auth
-
-const getAuth = async () =>
-  new Promise((resolve, reject) => {
-    chrome.runtime.sendMessage({ type: 'AUTH_REQUEST_POPUP' }, (response) => {
-      if (chrome.runtime.lastError) {
-        console.error('popup getAuth error:', chrome.runtime.lastError.message);
-        reject(chrome.runtime.lastError.message);
-      }
-
-      resolve(response);
-    });
-  });
-
-const getAuthRetry = async (times = 5) => {
-  return true;
-};
-
 // render
-function renderLoginBlock() {
-  const btn = document.querySelector('#go-in-btn');
-
-  btn.onclick = () => {
-    redirectAction();
-  };
-}
-
-function hideAuthBlock() {
-  const authBlock = document.querySelector('#go-auth');
-  authBlock.classList.add('hidden');
-}
-
 function renderLnTabs({ title: _title, count, tabId }) {
   title = _title;
   const tabBlock = document.createElement('div');
@@ -368,8 +321,3 @@ async function withRetry(fn, times, interval) {
     }
   }
 }
-
-// redirect
-const redirectAction = () => {
-  chrome.runtime.sendMessage({ type: 'LN_REDIRECT_ACTION' });
-};
