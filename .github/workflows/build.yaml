@@ -14,7 +14,7 @@ jobs:
         run: yarn global add crx3
 
       - name: Pack Extension
-        run: crx3 -o extension.crx ${{ env.GITHUB_WORKSPACE }}
+        run: crx3 -o extension.crx ${{ GITHUB_WORKSPACE }}
 
       - name: Create Release
         uses: ncipollo/release-action@v1
