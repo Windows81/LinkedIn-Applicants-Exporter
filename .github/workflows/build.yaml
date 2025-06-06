@@ -16,15 +16,6 @@ jobs:
       - name: Install CRX3
         run: yarn global add crx3
 
-      - name: Restore Cache
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-build-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
       - name: Pack Extension
         run: crx3 -o extension.crx ./build/
 
