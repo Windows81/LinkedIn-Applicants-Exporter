@@ -227,8 +227,8 @@ async function parseCandidates(timestamp) {
 
 function parseCandidateData(array) {
   const candidate = {};
-  var screeningQuestions = [];
-  var screeningAnswers = [];
+  var screeningQuestions = {};
+  var screeningAnswers = {};
   var experience = [];
   var education = [];
   for (var item of array) {
@@ -241,10 +241,10 @@ function parseCandidateData(array) {
     if (item.downloadUrl) candidate.cvTempDownload = item.downloadUrl;
 
     if (item.localizedQuestionDisplayText) {
-      screeningQuestions.push(item.localizedQuestionDisplayText);
+      screeningQuestions[item.entityUrn] = item.localizedQuestionDisplayText;
     }
     if (item.responses) {
-      screeningAnswers = item.responses.map((e) => e.questionAnswers);
+      screeningAnswers = Object.fromEntries(item.responses.map((e) => [e['*talentQuestion'], e.questionAnswers]));
     }
 
     if (item.profileTreasuryMediaPosition) {
@@ -273,7 +273,7 @@ function parseCandidateData(array) {
     }
   }
 
-  candidate.screening = screeningQuestions.map((_, i) => {
+  candidate.screening = Object.keys(screeningQuestions).map((i) => {
     return {
       question: screeningQuestions[i],
       answer: screeningAnswers[i],

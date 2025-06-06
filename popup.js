@@ -133,7 +133,7 @@ function renderDownload(data) {
   const newButton = createBtn({
     classList: ['main-btn'],
     label: `Download ${candidates.length} applicants`,
-    onClick: () => downloadData(JSON.stringify(candidates, null, '\t'), `${title}.json`),
+    onClick: () => downloadData(JSON.stringify(candidates, null, 4), `${title}.json`),
   });
 
   renderMainBlock({
