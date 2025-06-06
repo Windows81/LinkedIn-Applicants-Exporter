@@ -6,48 +6,32 @@ const footer = document.querySelector('.footer');
 document.addEventListener('DOMContentLoaded', async () => {
   hidrateOpenLnBtn();
 
-  chrome.tabs.query(
-    { active: true, currentWindow: true },
-    async function (tabs) {
-      var activeTab = tabs[0];
+  chrome.tabs.query({ active: true, currentWindow: true }, async function (tabs) {
+    var activeTab = tabs[0];
 
-      if (
-        !/linkedin\.com\/hiring\/jobs\/.*\/applicants/.test(activeTab.url)
-      ) {
-        const infoElement = document.getElementById('go-ln');
-        infoElement.classList.remove('hidden');
-        showOpenLnBtn();
-      } else {
-        const infoElement = document.getElementById('go-ln');
-        infoElement.classList.add('hidden');
-      }
-
-      if (
-        /linkedin\.com/.test(activeTab.url) &&
-        !/linkedin\.com\/hiring\/jobs\/.*\/applicants/.test(activeTab.url)
-      ) {
-        showOpenLnBtn();
-      }
-
-      if (
-        /linkedin\.com\/hiring\/jobs\/.*\/applicants/.test(activeTab.url)
-      ) {
-        const lnJob = await withRetry(
-          async () =>
-            await sendTabMessage(
-              activeTab.id,
-              'GET_JOB_METADATA_POPUP',
-              { tabId: activeTab.id },
-              true
-            ),
-          20,
-          150
-        );
-
-        if (lnJob) renderLnTabs(lnJob);
-      }
+    if (!/linkedin\.com\/hiring\/jobs\/.*\/applicants/.test(activeTab.url)) {
+      const infoElement = document.getElementById('go-ln');
+      infoElement.classList.remove('hidden');
+      showOpenLnBtn();
+    } else {
+      const infoElement = document.getElementById('go-ln');
+      infoElement.classList.add('hidden');
     }
-  );
+
+    if (/linkedin\.com/.test(activeTab.url) && !/linkedin\.com\/hiring\/jobs\/.*\/applicants/.test(activeTab.url)) {
+      showOpenLnBtn();
+    }
+
+    if (/linkedin\.com\/hiring\/jobs\/.*\/applicants/.test(activeTab.url)) {
+      const lnJob = await withRetry(
+        async () => await sendTabMessage(activeTab.id, 'GET_JOB_METADATA_POPUP', { tabId: activeTab.id }, true),
+        20,
+        150
+      );
+
+      if (lnJob) renderLnTabs(lnJob);
+    }
+  });
 });
 
 chrome.runtime.onMessage.addListener((obj, sender, response) => {
@@ -249,9 +233,7 @@ function convertJSONToCSV(jsonData) {
 
   const csvContent = [
     headers.join(','),
-    ...jsonData.map((row) =>
-      headers.map((header) => JSON.stringify(row[header], replacer)).join(',')
-    ),
+    ...jsonData.map((row) => headers.map((header) => JSON.stringify(row[header], replacer)).join(',')),
   ].join('\n');
 
   return csvContent;
@@ -294,10 +276,7 @@ async function sendTabMessage(tabId, type, data, withError = false) {
   return new Promise((resolve, reject) => {
     chrome.tabs.sendMessage(tabId, { type, data }, (response) => {
       if (chrome.runtime.lastError) {
-        console.error(
-          'Error sending message:',
-          chrome.runtime.lastError.message
-        );
+        console.error('Error sending message:', chrome.runtime.lastError.message);
         if (withError) {
           reject();
         } else {

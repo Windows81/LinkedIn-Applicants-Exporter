@@ -1,7 +1,7 @@
 let isProduction = false;
 
 let queryIdValue = null; // need to assure that it parses even from main request even from background
-let pagUrl = ''
+let pagUrl = '';
 
 chrome.webRequest.onBeforeRequest.addListener(
   function (details) {
@@ -21,7 +21,6 @@ chrome.webRequest.onBeforeRequest.addListener(
       const url = new URL(details.url);
       console.log('details.url: ', url);
       pagUrl = details.url;
-
     }
   },
   { urls: ['*://www.linkedin.com/*'] },
@@ -55,10 +54,7 @@ async function sendTabMessage(tabId, type, data) {
   return new Promise((resolve, reject) => {
     chrome.tabs.sendMessage(tabId, { type, data }, (response) => {
       if (chrome.runtime.lastError) {
-        console.error(
-          'Error sending message:',
-          chrome.runtime.lastError.message
-        );
+        console.error('Error sending message:', chrome.runtime.lastError.message);
         resolve(false);
       } else {
         resolve(response);
@@ -77,10 +73,7 @@ async function delay(msec) {
 
 chrome.webNavigation.onCompleted.addListener(
   function (details) {
-    if (
-      details.url.includes('/hiring/jobs/') &&
-      details.url.includes('/applicants')
-    ) {
+    if (details.url.includes('/hiring/jobs/') && details.url.includes('/applicants')) {
       chrome.scripting.executeScript({
         target: { tabId: details.tabId },
         files: ['src/content-scripts/ln-content.js'],
@@ -100,11 +93,10 @@ async function storeDebugData(data) {
     url = 'http://localhost:8081/api/extension/debug';
   }
 
-
   try {
     const headers = new Headers({
       'Content-Type': 'application/json',
-      'token': `Bearer ${accessToken}`,
+      token: `Bearer ${accessToken}`,
     });
 
     await fetch(url, {

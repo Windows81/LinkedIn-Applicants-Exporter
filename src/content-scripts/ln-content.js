@@ -1,4 +1,3 @@
-
 var searchParams = {};
 var jobTitle = '';
 
@@ -8,7 +7,6 @@ var jobTitle = '';
   if (!window.hasAddedMessageListener) {
     chrome.runtime.onMessage.addListener((obj, sender, response) => {
       window.hasAddedMessageListener = true;
-
 
       if (obj.type === 'GET_JOB_METADATA_POPUP') {
         (async () => {
@@ -20,7 +18,6 @@ var jobTitle = '';
       }
 
       if (obj.type === 'PARSE_APPLICANTS') {
-
         searchParams = getSearchParamsAsObject(window.location.search);
 
         (async () => {
@@ -31,7 +28,6 @@ var jobTitle = '';
           });
         })();
       }
-
     });
   }
 })();
@@ -56,9 +52,6 @@ function getSearchParamsAsObject(url) {
   return paramsObject;
 }
 
-
-
-
 // xPath ------------------------------------
 
 function getElementByXPath(xpath, container, single = true) {
@@ -66,9 +59,7 @@ function getElementByXPath(xpath, container, single = true) {
     xpath,
     container,
     null,
-    single
-      ? XPathResult.FIRST_ORDERED_NODE_TYPE
-      : XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+    single ? XPathResult.FIRST_ORDERED_NODE_TYPE : XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
     null
   );
 
@@ -78,13 +69,9 @@ function getElementByXPath(xpath, container, single = true) {
 // parse =============
 
 async function parseJobDataInCandidatesPage() {
-  const container = await waitForDomSimple(() =>
-    document.querySelector('.hiring-job-top-card')
-  );
+  const container = await waitForDomSimple(() => document.querySelector('.hiring-job-top-card'));
 
-  const jobTitleBlock = await waitForDomSimple(() =>
-    getElementByXPath('div[1]/div[1]/div[2]/div[1]/*', container)
-  );
+  const jobTitleBlock = await waitForDomSimple(() => getElementByXPath('div[1]/div[1]/div[2]/div[1]/*', container));
 
   let jobTitle = '';
 
@@ -94,12 +81,8 @@ async function parseJobDataInCandidatesPage() {
     }
   });
 
-  const applicantsCountBlock = document.querySelector(
-    '.hiring-applicants__count'
-  );
-  const applicantsCountContent = await waitForDomSimple(() =>
-    getElementByXPath('span', applicantsCountBlock)
-  );
+  const applicantsCountBlock = document.querySelector('.hiring-applicants__count');
+  const applicantsCountContent = await waitForDomSimple(() => getElementByXPath('span', applicantsCountBlock));
 
   const content = applicantsCountContent.innerText;
   let count = 0;
@@ -117,33 +100,22 @@ async function parseJobDataInCandidatesPage() {
 
 async function gatherApplicantsIds() {
   const candidates = [];
-  const container = await waitForDomSimple(() =>
-    document.querySelector('.hiring-applicants__content')
-  );
+  const container = await waitForDomSimple(() => document.querySelector('.hiring-applicants__content'));
 
-  const pagUrl = await requestPagUrlFromBack()
+  const pagUrl = await requestPagUrlFromBack();
 
   const paginationBlock = document.querySelector('.artdeco-pagination');
 
   if (paginationBlock) {
-
-
     let isNextPage = true;
     let pageIndex = 1;
-
-
 
     while (isNextPage) {
       const pageResponse = await fetchNextPage(pageIndex, pagUrl);
       if (pageResponse.included.length) {
-        const array =
-          pageResponse.data.data.hiringDashJobApplicationsByCriteria[
-          '*elements'
-          ];
+        const array = pageResponse.data.data.hiringDashJobApplicationsByCriteria['*elements'];
 
-        const pageCandidates = array.map((el) =>
-          extractJobApplicationNumbers(el)
-        );
+        const pageCandidates = array.map((el) => extractJobApplicationNumbers(el));
 
         candidates.push(...pageCandidates.flat());
       } else {
@@ -153,33 +125,20 @@ async function gatherApplicantsIds() {
     }
   } else {
     if (container) {
-      const list = await waitForDomSimple(() =>
-        getElementByXPath('div[1]/div[2]/ul', container)
-      );
+      const list = await waitForDomSimple(() => getElementByXPath('div[1]/div[2]/ul', container));
       for (let index = 1; index < list.children.length + 1; index++) {
         const candidate = {};
         const nameBlock = await waitForDomSimple(() =>
-          getElementByXPath(
-            `li[${index}]/a/div[1]/div[2]/div[contains(@class, 'title')]`,
-            list
-          )
+          getElementByXPath(`li[${index}]/a/div[1]/div[2]/div[contains(@class, 'title')]`, list)
         );
 
-        const elementWithMetadata = await waitForDomSimple(() =>
-          getElementByXPath(`li[${index}]/a/div[1]/div[2]`, list)
-        );
+        const elementWithMetadata = await waitForDomSimple(() => getElementByXPath(`li[${index}]/a/div[1]/div[2]`, list));
 
         const metadata = await waitForDomSimple(() =>
-          getElementByXPath(
-            `div[contains(@class, 'metadata')]`,
-            elementWithMetadata,
-            false
-          )
+          getElementByXPath(`div[contains(@class, 'metadata')]`, elementWithMetadata, false)
         );
 
-        const anchor = await waitForDomSimple(() =>
-          getElementByXPath(`li[${index}]/a`, list)
-        );
+        const anchor = await waitForDomSimple(() => getElementByXPath(`li[${index}]/a`, list));
 
         const applicationId = anchor.href.split('/')[7];
         candidate.applicationId = applicationId;
@@ -192,15 +151,14 @@ async function gatherApplicantsIds() {
 }
 
 async function parseCandidates(timestamp) {
-  let candidates = []
-  let pagUrl = ''
+  let candidates = [];
+  let pagUrl = '';
   try {
     const resultIds = await gatherApplicantsIds();
 
     const { candidates: _candidates, pagUrl: _pagUrl } = resultIds;
-    candidates = _candidates
-    pagUrl = _pagUrl
-
+    candidates = _candidates;
+    pagUrl = _pagUrl;
   } catch (error) {
     console.log('error: ', error);
     chrome.runtime.sendMessage({
@@ -209,17 +167,13 @@ async function parseCandidates(timestamp) {
     });
   }
 
-
   for (let index = 0; index < candidates.length; index++) {
     const candidate = candidates[index];
 
     let result = { included: [] };
 
     try {
-      result = await fetchJobApplication(
-        candidate.applicationId,
-        candidate.href
-      );
+      result = await fetchJobApplication(candidate.applicationId, candidate.href);
     } catch (error) {
       console.log('error: =============================== ', error);
       chrome.runtime.sendMessage({
@@ -229,7 +183,6 @@ async function parseCandidates(timestamp) {
     }
 
     if (result.included && result.included.length) {
-
       const candidateFromIncluded = parseCandidateData(result.included);
 
       candidates[index] = {
@@ -238,7 +191,6 @@ async function parseCandidates(timestamp) {
       };
 
       console.log('index: ====', index);
-
 
       chrome.runtime.sendMessage({
         type: 'PARSED_APPLICANTS_COUNT',
@@ -253,25 +205,24 @@ async function parseCandidates(timestamp) {
           raw: result.included,
           parsed: candidateFromIncluded,
           url: pagUrl,
-          jobTitle
+          jobTitle,
         },
       });
-
     } else {
       chrome.runtime.sendMessage({
         type: 'DEBUG_DATA_APPLICANT',
         data: {
-          timestamp, index,
-          error: JSON.stringify(result), url: window.location.href,
-          jobTitle
+          timestamp,
+          index,
+          error: JSON.stringify(result),
+          url: window.location.href,
+          jobTitle,
         },
       });
     }
-
   }
 
   return prepareCandidates(candidates);
-
 }
 
 function parseCandidateData(array) {
@@ -287,10 +238,7 @@ function parseCandidateData(array) {
     if (item.contactPhoneNumber) {
       candidate.phoneNumber = item.contactPhoneNumber.number;
     }
-    if (
-      item.defaultLocalizedName &&
-      item.defaultLocalizedNameWithoutCountryName
-    ) {
+    if (item.defaultLocalizedName && item.defaultLocalizedNameWithoutCountryName) {
       candidate.loc = item.defaultLocalizedName;
     }
     if (item.createdAt) {
@@ -298,11 +246,8 @@ function parseCandidateData(array) {
     }
 
     if (item.profileTreasuryMediaPosition) {
-      const start =
-        item.dateRange?.start?.month + ' ' + item.dateRange?.start?.year;
-      const end = item.dateRange?.end
-        ? item.dateRange?.end.month + ' ' + item.dateRange?.end.year
-        : 'present';
+      const start = item.dateRange?.start?.month + ' ' + item.dateRange?.start?.year;
+      const end = item.dateRange?.end ? item.dateRange?.end.month + ' ' + item.dateRange?.end.year : 'present';
 
       const name = item.companyName;
       const position = item.title;
@@ -392,11 +337,7 @@ function cleanObjectValues(obj) {
   const cleanedObj = {};
   for (const key in obj) {
     if (obj.hasOwnProperty(key) && obj[key] && typeof obj[key] === 'string') {
-      cleanedObj[key] = obj[key]
-        .replace(/"/g, "'")
-        .replace(/\n\s*/g, '')
-        .replace(/\\/g, '')
-        .trim();
+      cleanedObj[key] = obj[key].replace(/"/g, "'").replace(/\n\s*/g, '').replace(/\\/g, '').trim();
     } else {
       cleanedObj[key] = obj[key];
     }
@@ -494,16 +435,14 @@ async function fetchJobApplication(applicationId, link) {
   const response = await fetch(
     `https://www.linkedin.com/voyager/api/graphql?variables=(jobApplicationUrns:List(urn%3Ali%3Afsd_jobApplication%3A${applicationId}))&queryId=voyagerHiringDashJobApplications.${queryId}`,
     {
-      'headers': {
-        'accept': 'application/vnd.linkedin.normalized+json+2.1',
-        'accept-language':
-          'ru-RU,ru;q=0.9,uk;q=0.8,en-US;q=0.7,en;q=0.6,pl;q=0.5',
+      headers: {
+        accept: 'application/vnd.linkedin.normalized+json+2.1',
+        'accept-language': 'ru-RU,ru;q=0.9,uk;q=0.8,en-US;q=0.7,en;q=0.6,pl;q=0.5',
         'cache-control': 'no-cache',
         'csrf-token': csrfToken,
-        'pragma': 'no-cache',
-        'priority': 'u=1, i',
-        'sec-ch-ua':
-          '"Google Chrome";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
+        pragma: 'no-cache',
+        priority: 'u=1, i',
+        'sec-ch-ua': '"Google Chrome";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
         'sec-ch-ua-mobile': '?0',
         'sec-ch-ua-platform': '"macOS"',
         'sec-fetch-dest': 'empty',
@@ -512,9 +451,9 @@ async function fetchJobApplication(applicationId, link) {
         'x-li-lang': 'uk_UA',
         'x-li-pem-metadata': 'Voyager - Hiring=applicant-detail-right-pane',
       },
-      'method': 'GET',
-      'mode': 'cors',
-      'credentials': 'include',
+      method: 'GET',
+      mode: 'cors',
+      credentials: 'include',
     }
   );
 
@@ -529,10 +468,10 @@ async function fetchJobApplication(applicationId, link) {
 }
 
 function chooseSortOrder(sortType) {
-  const asc = 'sortOrder:ASCENDING'
-  const desc = 'sortOrder:DESCENDING'
+  const asc = 'sortOrder:ASCENDING';
+  const desc = 'sortOrder:DESCENDING';
   if (['FIRST_NAME', 'LAST_NAME'].includes(sortType)) return asc;
-  return desc
+  return desc;
 }
 
 function createSearchParamsForPage() {
@@ -540,11 +479,10 @@ function createSearchParamsForPage() {
   console.log('searchParams: ', searchParams);
 
   if ('sort_by' in searchParams && searchParams['sort_by']) {
-
-    resultArray.push(`${chooseSortOrder(searchParams['sort_by'])},sortType:${searchParams['sort_by']}`)
+    resultArray.push(`${chooseSortOrder(searchParams['sort_by'])},sortType:${searchParams['sort_by']}`);
   }
   if ('r' in searchParams && searchParams['r']) {
-    resultArray.push(`ratings:List(${searchParams['r']})`)
+    resultArray.push(`ratings:List(${searchParams['r']})`);
   }
   //if ('loc' in searchParams && searchParams['loc']) {
   //  const encoded = encodeURIComponent(searchParams['loc'])
@@ -553,12 +491,12 @@ function createSearchParamsForPage() {
   //  resultArray.push(`placeUrns:List(${encoded})`)
   //}
   if ('yoe' in searchParams && searchParams['yoe']) {
-    resultArray.push(`yearsOfExperiences:List(${searchParams['yoe']})`)
+    resultArray.push(`yearsOfExperiences:List(${searchParams['yoe']})`);
   }
 
-  const resultString = resultArray.join(',')
+  const resultString = resultArray.join(',');
 
-  return resultString.length > 5 ? `,${resultString}` : ''
+  return resultString.length > 5 ? `,${resultString}` : '';
 }
 
 function requestPagUrlFromBack() {
@@ -574,69 +512,59 @@ function requestPagUrlFromBack() {
 }
 
 function modifyPagUrl(url, start) {
-  const modified = url
-    .replace(/start:\d+/, `start:${start}`)
-    .replace(/count:\d+/, `count:25`);
+  const modified = url.replace(/start:\d+/, `start:${start}`).replace(/count:\d+/, `count:25`);
 
-  return modified
+  return modified;
 }
 
 function createDefaultUrl(start) {
-  const searchParamsString = createSearchParamsForPage()
+  const searchParamsString = createSearchParamsForPage();
   console.log('searchParamsString: ', searchParamsString);
 
   const jobPostingId = _getJobId();
 
-  const url = `https://www.linkedin.com/voyager/api/graphql?variables=(start:${start},count:25,jobPosting:urn%3Ali%3Afsd_jobPosting%3A${jobPostingId}${searchParamsString})&queryId=voyagerHiringDashJobApplications.843c8c719ed6c86c0030f93ba366e2f0`
+  const url = `https://www.linkedin.com/voyager/api/graphql?variables=(start:${start},count:25,jobPosting:urn%3Ali%3Afsd_jobPosting%3A${jobPostingId}${searchParamsString})&queryId=voyagerHiringDashJobApplications.843c8c719ed6c86c0030f93ba366e2f0`;
 
   return url;
-
 }
 
-
 async function fetchNextPage(page, pagUrl) {
-
   const csrfToken = getCookie('JSESSIONID').replace(/"/g, '');
   //const queryId = await getQueryId(link);
 
   const start = (page - 1) * 25;
   const url = pagUrl ? modifyPagUrl(pagUrl, start) : createDefaultUrl(start);
 
-  const response = await fetch(
-    url,
-    {
-      'headers': {
-        'accept': 'application/vnd.linkedin.normalized+json+2.1',
-        'accept-language':
-          'ru-RU,ru;q=0.9,uk;q=0.8,en-US;q=0.7,en;q=0.6,pl;q=0.5',
-        'cache-control': 'no-cache',
-        'csrf-token': csrfToken,
-        'pragma': 'no-cache',
-        'priority': 'u=1, i',
-        'sec-ch-ua':
-          '"Google Chrome";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"macOS"',
-        'sec-fetch-dest': 'empty',
-        'sec-fetch-mode': 'cors',
-        'sec-fetch-site': 'same-origin',
-        'x-li-lang': 'uk_UA',
-        //'x-li-page-instance':
-        //'urn:li:page:d_flagship3_hiring_applicant_detail;1UOgywjpTp2YiYVCytjYZA==',
-        'x-li-pem-metadata': 'Voyager - Hiring=applicant-detail-right-pane',
-        //  'x-li-track':
-        //    '{"clientVersion":"1.13.17226","mpVersion":"1.13.17226","osName":"web","timezoneOffset":3,"timezone":"Europe/Kiev","deviceFormFactor":"DESKTOP","mpName":"voyager-web","displayDensity":1.100000023841858,"displayWidth":2112.000045776367,"displayHeight":1188.0000257492065}',
-        //  'x-restli-protocol-version': '2.0.0',
-      },
-      //'referrer':
-      //  'https://www.linkedin.com/hiring/jobs/3928101024/applicants/18565365994/detail/?r=UNRATED%2CGOOD_FIT%2CMAYBE',
-      //'referrerPolicy': 'strict-origin-when-cross-origin',
-      //'body': null,
-      'method': 'GET',
-      'mode': 'cors',
-      'credentials': 'include',
-    }
-  );
+  const response = await fetch(url, {
+    headers: {
+      accept: 'application/vnd.linkedin.normalized+json+2.1',
+      'accept-language': 'ru-RU,ru;q=0.9,uk;q=0.8,en-US;q=0.7,en;q=0.6,pl;q=0.5',
+      'cache-control': 'no-cache',
+      'csrf-token': csrfToken,
+      pragma: 'no-cache',
+      priority: 'u=1, i',
+      'sec-ch-ua': '"Google Chrome";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
+      'sec-ch-ua-mobile': '?0',
+      'sec-ch-ua-platform': '"macOS"',
+      'sec-fetch-dest': 'empty',
+      'sec-fetch-mode': 'cors',
+      'sec-fetch-site': 'same-origin',
+      'x-li-lang': 'uk_UA',
+      //'x-li-page-instance':
+      //'urn:li:page:d_flagship3_hiring_applicant_detail;1UOgywjpTp2YiYVCytjYZA==',
+      'x-li-pem-metadata': 'Voyager - Hiring=applicant-detail-right-pane',
+      //  'x-li-track':
+      //    '{"clientVersion":"1.13.17226","mpVersion":"1.13.17226","osName":"web","timezoneOffset":3,"timezone":"Europe/Kiev","deviceFormFactor":"DESKTOP","mpName":"voyager-web","displayDensity":1.100000023841858,"displayWidth":2112.000045776367,"displayHeight":1188.0000257492065}',
+      //  'x-restli-protocol-version': '2.0.0',
+    },
+    //'referrer':
+    //  'https://www.linkedin.com/hiring/jobs/3928101024/applicants/18565365994/detail/?r=UNRATED%2CGOOD_FIT%2CMAYBE',
+    //'referrerPolicy': 'strict-origin-when-cross-origin',
+    //'body': null,
+    method: 'GET',
+    mode: 'cors',
+    credentials: 'include',
+  });
 
   if (!response.ok) {
     throw new Error('Network response was not ok ' + response.statusText);
@@ -666,9 +594,7 @@ function _getQueryId() {
       method: 'GET',
     });
     const _text = await resultTexst.text();
-    let hashArr = _text.match(
-      /voyagerHiringDashJobApplications\.([a-f0-9]{32})/
-    );
+    let hashArr = _text.match(/voyagerHiringDashJobApplications\.([a-f0-9]{32})/);
 
     const hash = hashArr[1];
     return hash;
@@ -712,11 +638,7 @@ function extractJobApplicationNumbers(text) {
   return Array.from(new Set(results)).map((item) => ({ applicationId: item }));
 }
 
-
-
 //https://www.linkedin.com/hiring/jobs/3935067522/applicants/21463816656/detail/?keyword=&loc=urn%3Ali%3Aplace%3A(urn%3Ali%3Acountry%3Aus%2C0)%2Curn%3Ali%3Aplace%3A(urn%3Ali%3Acountry%3Aua%2C0)%2Curn%3Ali%3Aplace%3A(urn%3Ali%3Acountry%3Ain%2C0)%2Curn%3Ali%3Aplace%3A(urn%3Ali%3Acountry%3Amn%2C0)%2Curn%3Ali%3Aplace%3A(urn%3Ali%3Acountry%3Aus%2C534)%2Curn%3Ali%3Aplace%3A(urn%3Ali%3Acountry%3Aus%2C716)&sort_by=FIRST_NAME
-
-
 
 //https://www.linkedin.com/voyager/api/graphql?variables=(start:10,count:15,jobPosting:urn%3Ali%3Afsd_jobPosting%3A3935067522,sortType:FIRST_NAME,sortOrder:ASCENDING,placeUrns:List(urn%3Ali%3Aplace%3A%28urn%3Ali%3Acountry%3Aus%2C0%29))&queryId=voyagerHiringDashJobApplications.843c8c719ed6c86c0030f93ba366e2f0
 
@@ -724,10 +646,8 @@ function extractJobApplicationNumbers(text) {
 
 //"(start:0,count:10,jobPosting:urn:li:fsd_jobPosting:3935067522,sortType:FIRST_NAME,sortOrder:ASCENDING,placeUrns:List(urn:li:place:(urn:li:country:us,0),urn:li:place:(urn:li:country:ua,0),urn:li:place:(urn:li:country:in,0),urn:li:place:(urn:li:country:us,70)))"
 
-
 //my
 //https://www.linkedin.com/voyager/api/graphql?variables=(start:0,count:25,jobPosting:urn%3Ali%3Afsd_jobPosting%3A3935067522,sortOrder:ASCENDING,sortType:FIRST_NAME,placeUrns:List(urn:li:place:(urn:li:country:us,0),urn:li:place:(urn:li:country:ua,0),urn:li:place:(urn:li:country:in,0),urn:li:place:(urn:li:country:us,70)))&queryId=voyagerHiringDashJobApplications.843c8c719ed6c86c0030f93ba366e2f0
-
 
 //https://www.linkedin.com/voyager/api/graphql?variables=(start:0,count:10,jobPosting:urn%3Ali%3Afsd_jobPosting%3A3935067522,sortType:FIRST_NAME,sortOrder:ASCENDING,placeUrns:List(urn%3Ali%3Aplace%3A%28urn%3Ali%3Acountry%3Aus%2C0%29,urn%3Ali%3Aplace%3A%28urn%3Ali%3Acountry%3Aua%2C0%29,urn%3Ali%3Aplace%3A%28urn%3Ali%3Acountry%3Ain%2C0%29,urn%3Ali%3Aplace%3A%28urn%3Ali%3Acountry%3Aus%2C70%29,urn%3Ali%3Aplace%3A%28urn%3Ali%3Acountry%3Aus%2C732%29))&queryId=voyagerHiringDashJobApplications.843c8c719ed6c86c0030f93ba366e2f0
 

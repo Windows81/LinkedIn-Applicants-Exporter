@@ -2,7 +2,7 @@
 
 ![](https://i.vimeocdn.com/video/1889247789-1bed161b30f7b42bcb591da218c92315d21d9988357b40b48d946883fbd5d966-d)
 
-https://introview.com/00gri00/linkedin-applicants-exporter-video-instruction#content
+https://introview.com/00gri00/linkedin-applicants-exporter-video-instruction#content (not mine)
 
 Exports CSV data in the following format:
 
