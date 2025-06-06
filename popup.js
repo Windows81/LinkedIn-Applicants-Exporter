@@ -90,20 +90,7 @@ const getAuth = async () =>
   });
 
 const getAuthRetry = async (times = 5) => {
-  let retries = 0;
-  let authResponse;
-
-  while (retries < times) {
-    try {
-      authResponse = await getAuth();
-      break;
-    } catch (error) {
-      console.error('Error occurred while trying to get auth:', error);
-    }
-    retries++;
-  }
-
-  return authResponse === 'true' || authResponse === true;
+  return true;
 };
 
 // render

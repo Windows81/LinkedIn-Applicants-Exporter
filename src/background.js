@@ -6,7 +6,7 @@ let accessToken = null;
 let queryIdValue = null; // need to assure that it parses even from main request even from background
 let pagUrl = ''
 
-getIsAuthorized();
+// getIsAuthorized();
 
 chrome.webRequest.onBeforeRequest.addListener(
   function (details) {
