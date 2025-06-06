@@ -1,9 +1,8 @@
 {
-  "update_url": "https://clients2.google.com/service/update2/crx",
   "manifest_version": 3,
   "name": "LinkedIn Applicants Exporter",
   "description": "A tool to help recruiters parse inbound applicants from their LinkedIn job posts and easily export them.",
-  "version": "0.0.25",
+  "version": "0.1.0",
   "action": {
     "default_popup": "index.html",
     "default_icon": {
@@ -12,7 +11,7 @@
     }
   },
   "host_permissions": [
-    "https://www.linkedin.com/*"
+    "https://*.linkedin.com/*"
   ],
   "icons": {
     "16": "images/icon16.png",
