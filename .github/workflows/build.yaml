@@ -8,16 +8,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download Extension
-        uses: actions/download-artifact@v4
-        with:
-          name: extension.zip
-          path: .
+        uses: actions/checkout@v4
 
       - name: Install CRX3
         run: yarn global add crx3
 
       - name: Pack Extension
-        run: crx3 -o extension.crx ./build/
+        run: crx3 -o extension.crx ${{ env.GITHUB_WORKSPACE }}
 
       - name: Create Release
         uses: ncipollo/release-action@v1
