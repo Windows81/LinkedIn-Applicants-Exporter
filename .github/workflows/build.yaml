@@ -11,14 +11,22 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install CRX3
-        run: npm install -g crx3
+        run: yarn global add crx3
+
+      - name: Collect version
+        run: |
+          echo "BUILD_VERSION=$(sed -nE 's/^\s*"version": "(.*?)",$/\1/p' packages/app/package.json)" >> $GITHUB_ENV
+          echo "${{ env.BUILD_VERSION }}"
 
       - name: Pack Extension
         run: crx3 -o extension.crx ${{ github.workspace }}
 
-      - name: Create Release
-        uses: alexellis/upload-assets@0.4.0
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          asset_paths: '["${{ github.workspace }}/*.crx"]'
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ${{ github.workspace }}/extension.crx
+          asset_name: fuel-wallet-chrome-${{ env.BUILD_VERSION }}.zip
+          asset_content_type: application/zip
