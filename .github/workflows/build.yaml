@@ -17,7 +17,8 @@ jobs:
         run: crx3 -o extension.crx ${{ github.workspace }}
 
       - name: Create Release
-        uses: ncipollo/release-action@v1
+        uses: alexellis/upload-assets@0.4.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         with:
-          artifacts: ${{ github.workspace }}/*.crx 
-          token: ${{ github.token }}
+          asset_paths: '["${{ github.workspace }}/*.crx"]'
