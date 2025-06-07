@@ -25,3 +25,4 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: ${{ github.workspace }}/extension.crx
+          tag_name: ${{ env.BUILD_VERSION }}
