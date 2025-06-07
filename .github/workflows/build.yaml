@@ -16,7 +16,6 @@ jobs:
       - name: Collect Version
         run: |
           echo "BUILD_VERSION=$(sed -nE 's/^\s*"version": "(.*?)",$/\1/p' ${{ github.workspace }}/manifest.json)" >> $GITHUB_ENV
-          echo "${{ env.BUILD_VERSION }}"
 
       - name: Pack Extension
         run: crx3 -o extension.crx ${{ github.workspace }}
