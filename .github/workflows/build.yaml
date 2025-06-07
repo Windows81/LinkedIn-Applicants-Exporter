@@ -22,11 +22,6 @@ jobs:
         run: crx3 -o extension.crx ${{ github.workspace }}
 
       - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+        uses: softprops/action-gh-release@v2
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ${{ github.workspace }}/extension.crx
-          asset_name: fuel-wallet-chrome-${{ env.BUILD_VERSION }}.zip
-          asset_content_type: application/zip
+          files: ${{ github.workspace }}/extension.crx
