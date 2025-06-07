@@ -13,9 +13,9 @@ jobs:
       - name: Install CRX3
         run: yarn global add crx3
 
-      - name: Collect version
+      - name: Collect Version
         run: |
-          echo "BUILD_VERSION=$(sed -nE 's/^\s*"version": "(.*?)",$/\1/p' packages/app/package.json)" >> $GITHUB_ENV
+          echo "BUILD_VERSION=$(sed -nE 's/^\s*"version": "(.*?)",$/\1/p' ${{ github.workspace }}/manifest.json)" >> $GITHUB_ENV
           echo "${{ env.BUILD_VERSION }}"
 
       - name: Pack Extension
